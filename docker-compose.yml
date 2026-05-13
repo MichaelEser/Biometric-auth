@@ -14,7 +14,9 @@ services:
       - ./backend/onnx_models:/app/onnx_models
 
   frontend:
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
     ports:
       - "3000:80"
     depends_on:
