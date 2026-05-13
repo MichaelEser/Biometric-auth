@@ -1,0 +1,14 @@
+# Production overrides — no bind mounts, restart policies, no exposed DB ports
+version: "3.9"
+services:
+  backend:
+    restart: always
+    volumes: []
+  frontend:
+    restart: always
+  postgres:
+    restart: always
+    ports: []
+  redis:
+    restart: always
+    ports: []

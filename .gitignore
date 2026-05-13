@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Environment
+.env
+.env.prod
+
+# ONNX model weights — download via backend/scripts/download_models.sh
+backend/onnx_models/*.onnx
+backend/onnx_models/*.pkl
+backend/onnx_models/*.bin
+
+# Node
+node_modules/
+frontend/dist/
+
+# Docker
+*.log
+
+# macOS
+.DS_Store
+Thumbs.db
