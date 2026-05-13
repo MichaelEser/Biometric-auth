@@ -1,6 +1,13 @@
-from fastapi import APIRouter
+# GET  /users/me
+# PATCH /users/me
+
+from fastapi import APIRouter, Depends
+from app.api.deps import get_current_user
+from app.domain.users.schemas import UserRead
+from app.domain.users.models import User
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-# GET  /users/me
-# PATCH /users/me
+@router.get("/me", response_model=UserRead)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
