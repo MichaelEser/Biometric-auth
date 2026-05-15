@@ -8,6 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.domain.auth.schemas import RegisterRequest, LoginRequest, TokenResponse, RefreshRequest
 from app.domain.auth.service import register_user, login_user, refresh_tokens
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from app.core.security import verify_token
+
+bearer_scheme = HTTPBearer()
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -32,3 +36,19 @@ async def refresh(payload: RefreshRequest):
         return await refresh_tokens(payload.refresh_token)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    
+@router.post("/logout")
+async def logout(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db)
+):
+    token = credentials.credentials
+    try:
+        payload = verify_token(token)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    
+    from app.core.redis import blacklist_token
+    from app.core.config import settings
+    await blacklist_token(payload["jti"], settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+    return {"message": "Logged out successfully"}
