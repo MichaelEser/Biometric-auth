@@ -1,15 +1,12 @@
-# ArcFace ONNX wrapper
-# embed(face_crop) -> np.ndarray of shape (512,)
-# Normalizes output to unit vector for cosine similarity
 import numpy as np
-import insightface
 from insightface.app import FaceAnalysis
 
 _embedder = None
 
 def get_embedder():
+    global _embedder
     if _embedder is None:
-        _embedder = FaceAnalysis (
+        _embedder = FaceAnalysis(
             name="buffalo_l",
             allowed_modules=["detection", "recognition"],
             providers=["CPUExecutionProvider"]
@@ -18,8 +15,8 @@ def get_embedder():
     return _embedder
 
 def extract_embedding(image: np.ndarray) -> np.ndarray:
-    _embedder = get_embedder()
-    faces = _embedder.get(image)
+    embedder = get_embedder()
+    faces = embedder.get(image)
     if len(faces) == 0:
         raise ValueError("No face detected for embedding extraction")
     face = faces[0]

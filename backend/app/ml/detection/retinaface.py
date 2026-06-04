@@ -1,8 +1,4 @@
-# RetinaFace ONNX wrapper
-# detect(image) -> list of {bbox, landmarks, confidence}
-# Raises NofaceDetectedError if no face found
 import numpy as np
-import insightface
 from insightface.app import FaceAnalysis
 
 _detector = None
@@ -15,7 +11,7 @@ def get_detector():
             allowed_modules=["detection"],
             providers=["CPUExecutionProvider"]
         )
-        _detector.prepare(ctx_id=0, det_size=(640,640)) # can change values the hogher the more accurate, but takes longer
+        _detector.prepare(ctx_id=0, det_size=(640, 640))
     return _detector
 
 def detect_faces(image: np.ndarray) -> list:
@@ -24,7 +20,7 @@ def detect_faces(image: np.ndarray) -> list:
     if len(faces) == 0:
         raise ValueError("No face detected in image")
     if len(faces) > 1:
-        raise ValueError("Multiple faces detected, please ensure only one fce is visible")
+        raise ValueError("Multiple faces detected, please ensure only one face is visible")
     return faces
 
 def get_primary_face(image: np.ndarray):
