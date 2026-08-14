@@ -37,6 +37,18 @@ docker-compose exec backend alembic upgrade head
 - Backend API docs: http://localhost:8000/docs
 - Frontend: http://localhost:3000
 
+## Live Demo
+
+- **Frontend**: https://biometric-auth-frontend.onrender.com
+- **Backend API docs**: https://biometric-auth-backend-enwe.onrender.com/docs
+
+## How It Works
+
+1. Register with email, username, password, and a face scan
+2. Login with credentials and a live face scan
+3. The system compares your live face embedding against the stored one using cosine similarity
+4. If similarity score ≥ 0.45 you are authenticated
+
 ## Project Structurebiometric-auth/
 ├── backend/ # FastAPI backend
 │ ├── app/
