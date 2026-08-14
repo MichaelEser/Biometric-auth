@@ -1,6 +1,6 @@
 # AI-Powered Biometric Authentication System
 
-Facial registration and verification with a secure JWT-based backend.
+A full-stack web application for facial registration and verification with a secure JWT-based backend.
 
 ## Stack
 | Layer | Technology |
@@ -10,7 +10,15 @@ Facial registration and verification with a secure JWT-based backend.
 | Frontend | React + TypeScript + TailwindCSS + react-webcam |
 | Infra | Docker + GitHub Actions |
 
-## Quick start
+## Features
+- Face registration via webcam
+- Facial verification on login
+- JWT access + refresh token system
+- Redis JWT blacklisting on logout
+- Rate limiting on auth endpoints
+- pgvector cosine similarity search
+
+## Quick Start
 
 ```bash
 # 1. Copy and fill environment variables
@@ -27,7 +35,24 @@ docker-compose exec backend alembic upgrade head
 ```
 
 - Backend API docs: http://localhost:8000/docs
-- Frontend:         http://localhost:3000
+- Frontend: http://localhost:3000
 
-## Docs
-See the `docs/` folder for architecture overview and API notes.
+## Project Structurebiometric-auth/
+├── backend/ # FastAPI backend
+│ ├── app/
+│ │ ├── api/ # HTTP routes
+│ │ ├── core/ # Config, security, Redis
+│ │ ├── domain/ # Auth, users, biometric logic
+│ │ └── ml/ # AI pipeline
+│ └── migrations/ # Alembic migrations
+├── frontend/ # React frontend
+│ └── src/
+│ ├── components/
+│ ├── hooks/
+│ ├── pages/
+│ └── store/
+└── docker/ # Nginx config
+
+## Deployment
+See `docker-compose.prod.yml` for production configuration.
+Set all environment variables from `.env.example` in your deployment platform.
