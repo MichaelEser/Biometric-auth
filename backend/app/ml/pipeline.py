@@ -1,17 +1,3 @@
-# FacePipeline — single entry point for all biometric operations
-#
-# run_enroll(image_b64):
-#   1. decode + preprocess image
-#   2. detect face (RetinaFace)
-#   3. check liveness (Silent-Face)
-#   4. align face crop
-#   5. extract embedding (ArcFace)
-#   6. return embedding vector
-#
-# run_verify(image_b64, stored_embedding):
-#   1–5. same as enroll
-#   6. compute cosine similarity
-#   7. return (authenticated: bool, score: float)
 import numpy as np
 from app.ml.preprocessing.image_utils import decode_base64_image, to_rgb
 from app.ml.detection.retinaface import get_primary_face
@@ -20,7 +6,29 @@ from app.ml.anti_spoof.silent_face import is_live
 from app.core.config import settings
 from app.core.exceptions import NoFaceDetectedError, MultipleFacesError, LivenessError
 
+
 def run_enroll(image_b64: str) -> np.ndarray:
+    """
+    Run the full enrollment pipeline on a base64 encoded image.
+    
+    Steps:
+        1. Decode base64 image
+        2. Convert BGR to RGB
+        3. Detect face using RetinaFace
+        4. Check liveness using Silent-Face
+        5. Extract 512-dim embedding using ArcFace
+    
+    Args:
+        image_b64: Base64 encoded JPEG image string
+        
+    Returns:
+        np.ndarray: Normalized 512-dimensional face embedding
+        
+    Raises:
+        NoFaceDetectedError: If no face is found in the image
+        MultipleFacesError: If more than one face is detected
+        LivenessError: If the liveness check fails
+    """
     image = decode_base64_image(image_b64)
     image_rgb = to_rgb(image)
 
@@ -41,7 +49,31 @@ def run_enroll(image_b64: str) -> np.ndarray:
     embedding = extract_embedding(image_rgb)
     return embedding
 
+
 def run_verify(image_b64: str, stored_embedding: np.ndarray) -> tuple[bool, float]:
+    """
+    Run the full verification pipeline on a base64 encoded image.
+    
+    Steps:
+        1. Decode base64 image
+        2. Convert BGR to RGB
+        3. Detect face using RetinaFace
+        4. Check liveness using Silent-Face
+        5. Extract 512-dim embedding using ArcFace
+        6. Compute cosine similarity against stored embedding
+    
+    Args:
+        image_b64: Base64 encoded JPEG image string
+        stored_embedding: The stored 512-dim embedding to compare against
+        
+    Returns:
+        tuple[bool, float]: (authenticated, similarity_score)
+        
+    Raises:
+        NoFaceDetectedError: If no face is found in the image
+        MultipleFacesError: If more than one face is detected
+        LivenessError: If the liveness check fails
+    """
     image = decode_base64_image(image_b64)
     image_rgb = to_rgb(image)
 
