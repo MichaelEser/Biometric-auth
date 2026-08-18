@@ -1,5 +1,3 @@
-// Shared page shell
-// Contains: navigation bar, main content slot, footer
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
@@ -18,28 +16,43 @@ export function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to="/dashboard" className="text-xl font-bold text-blue-600">
-            BiometricAuth
+    <div className="min-h-screen bg-[#0a0f1e]">
+      {/* Background glow effects */}
+      <div className="fixed top-0 left-1/4 w-96 h-96 bg-green-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Navbar */}
+      <nav className="glass border-b border-white/5 sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-green-400/10 border border-green-400/20 flex items-center justify-center">
+              <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </div>
+            <span className="font-bold text-white">BiometricAuth</span>
           </Link>
+
           <div className="flex items-center gap-4">
-            {user && (
-              <span className="text-sm text-gray-600">
-                Welcome, {user.username}
-              </span>
-            )}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
+              <span className="w-2 h-2 rounded-full bg-green-400 pulse-dot" />
+              <span className="text-white/60 text-sm">{user?.username}</span>
+            </div>
             <button
               onClick={handleLogout}
-              className="text-sm text-red-500 hover:text-red-700"
+              className="px-4 py-1.5 rounded-lg text-sm font-medium text-white/40 
+                hover:text-white hover:bg-white/5 border border-transparent
+                hover:border-white/10 transition-all duration-200"
             >
               Logout
             </button>
           </div>
         </div>
       </nav>
-      <main className="max-w-5xl mx-auto px-4 py-8">
+
+      {/* Main content */}
+      <main className="max-w-5xl mx-auto px-6 py-10">
         {children}
       </main>
     </div>
