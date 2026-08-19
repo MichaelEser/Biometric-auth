@@ -25,7 +25,7 @@ export default function Register() {
     try {
       await register(email, username, password, imageB64);
       setCaptureStatus("success");
-      setTimeout(() => navigate("/dashboard"), 1000);
+      setTimeout(() => navigate("/dashboard"), 1200);
     } catch (err: any) {
       setCaptureStatus("error");
       setError(err.response?.data?.detail || "Registration failed");
@@ -33,122 +33,108 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center px-4">
-      {/* Background glow effects */}
-      <div className="fixed top-0 right-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="fixed bottom-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div style={{ minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
 
-      <div className="w-full max-w-md fade-in">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-green-400/10 border border-green-400/20 mb-4">
-            <svg className="w-7 h-7 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
+      <div className="card fade-in" style={{ width: "100%", maxWidth: 420, padding: 40 }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <span style={{ fontWeight: 700, fontSize: 16, color: "#1e293b" }}>BiometricAuth</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">Create account</h1>
-          <p className="text-white/40 text-sm mt-1">Register your face to get started</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1e293b", marginBottom: 4 }}>
+            {step === "form" ? "Create account" : "Enroll your face"}
+          </h1>
+          <p style={{ color: "#64748b", fontSize: 14 }}>
+            {step === "form" ? "Fill in your details to get started" : "We'll use this to verify your identity on login"}
+          </p>
         </div>
 
         {/* Step indicator */}
-        <div className="flex items-center gap-2 mb-6 px-2">
-          <div className={`flex-1 h-1 rounded-full transition-all duration-500 ${step === "form" ? "bg-green-400" : "bg-green-400"}`} />
-          <div className={`flex-1 h-1 rounded-full transition-all duration-500 ${step === "face" ? "bg-green-400" : "bg-white/10"}`} />
+        <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
+          <div style={{ flex: 1, height: 3, borderRadius: 2, background: "#2563eb" }} />
+          <div style={{ flex: 1, height: 3, borderRadius: 2, background: step === "face" ? "#2563eb" : "#e2e8f0", transition: "background 0.4s" }} />
         </div>
 
-        {/* Card */}
-        <div className="glass rounded-2xl p-8">
-          {step === "form" && (
-            <form onSubmit={handleFormSubmit} className="flex flex-col gap-4 slide-up">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-white/50 uppercase tracking-wider">Email</label>
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 
-                    focus:outline-none focus:border-green-400/50 transition-all duration-200 text-sm"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-white/50 uppercase tracking-wider">Username</label>
-                <input
-                  type="text"
-                  placeholder="yourname"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 
-                    focus:outline-none focus:border-green-400/50 transition-all duration-200 text-sm"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-white/50 uppercase tracking-wider">Password</label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 
-                    focus:outline-none focus:border-green-400/50 transition-all duration-200 text-sm"
-                />
-              </div>
-
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
-                  <p className="text-red-400 text-sm">{error}</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl font-semibold text-sm mt-2
-                  bg-gradient-to-r from-green-400 to-emerald-500 text-gray-900
-                  hover:from-green-300 hover:to-emerald-400 hover:shadow-lg hover:shadow-green-400/25
-                  transition-all duration-300 active:scale-95"
-              >
-                Continue to Face Scan
-              </button>
-
-              <p className="text-center text-sm text-white/30">
-                Already have an account?{" "}
-                <Link to="/login" className="text-green-400 hover:text-green-300 transition-colors">
-                  Login
-                </Link>
-              </p>
-            </form>
-          )}
-
-          {step === "face" && (
-            <div className="flex flex-col items-center gap-4 slide-up">
-              <div className="text-center mb-2">
-                <p className="text-white font-medium">Face Enrollment</p>
-                <p className="text-white/40 text-sm mt-1">We'll use this to verify your identity</p>
-              </div>
-              <FaceCapture onCapture={handleCapture} status={captureStatus} />
-              {error && (
-                <div className="w-full bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
-                  <p className="text-red-400 text-sm text-center">{error}</p>
-                </div>
-              )}
-              <button
-                onClick={() => { setStep("form"); setCaptureStatus("idle"); setError(""); }}
-                className="text-white/30 text-sm hover:text-white/60 transition-colors"
-              >
-                ← Back to details
-              </button>
+        {step === "form" && (
+          <form onSubmit={handleFormSubmit} className="slide-up" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={{ fontSize: 13, fontWeight: 500, color: "#475569" }}>Email address</label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="input-field"
+              />
             </div>
-          )}
-        </div>
 
-        <p className="text-center text-white/20 text-xs mt-6">
-          Your biometric data is encrypted and stored securely
-        </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={{ fontSize: 13, fontWeight: 500, color: "#475569" }}>Username</label>
+              <input
+                type="text"
+                placeholder="yourname"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="input-field"
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={{ fontSize: 13, fontWeight: 500, color: "#475569" }}>Password</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="input-field"
+              />
+              <p style={{ fontSize: 12, color: "#94a3b8" }}>Minimum 8 characters</p>
+            </div>
+
+            {error && (
+              <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "10px 14px" }}>
+                <p style={{ color: "#ef4444", fontSize: 13 }}>{error}</p>
+              </div>
+            )}
+
+            <button type="submit" className="btn-primary" style={{ marginTop: 4 }}>
+              Continue to Face Enrollment →
+            </button>
+
+            <p style={{ textAlign: "center", fontSize: 13, color: "#94a3b8" }}>
+              Already have an account?{" "}
+              <Link to="/login" style={{ color: "#2563eb", fontWeight: 500, textDecoration: "none" }}>
+                Sign in
+              </Link>
+            </p>
+          </form>
+        )}
+
+        {step === "face" && (
+          <div className="slide-up" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
+            <FaceCapture onCapture={handleCapture} status={captureStatus} />
+            {error && (
+              <div style={{ width: "100%", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "10px 14px" }}>
+                <p style={{ color: "#ef4444", fontSize: 13, textAlign: "center" }}>{error}</p>
+              </div>
+            )}
+            <button
+              onClick={() => { setStep("form"); setCaptureStatus("idle"); setError(""); }}
+              style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 13, cursor: "pointer" }}
+            >
+              ← Back to details
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
