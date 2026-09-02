@@ -50,6 +50,7 @@ export function useAuth() {
   }
 
   async function register(email: string, username: string, password: string, imageb64: string) {
+  try {
     const tokenRes = await api.post("/auth/register", { email, username, password });
     const { access_token, refresh_token } = tokenRes.data;
     localStorage.setItem("access_token", access_token);
@@ -58,7 +59,16 @@ export function useAuth() {
 
     const userRes = await api.get("/users/me");
     setAuth(userRes.data, access_token, refresh_token);
+  } catch (err: any) {
+    const detail = err.response?.data?.detail;
+    const message = typeof detail === "string"
+      ? detail
+      : Array.isArray(detail)
+      ? detail.map((d: any) => d.msg).join(", ")
+      : "Registration failed";
+    throw new Error(message);
   }
+}
 
   async function logout() {
     try {

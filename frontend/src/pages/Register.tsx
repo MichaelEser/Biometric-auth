@@ -15,9 +15,22 @@ export default function Register() {
   const [error, setError] = useState("");
 
   async function handleFormSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setStep("face");
+  e.preventDefault();
+  setError("");
+  if (password.length < 8) {
+    setError("Password must be at least 8 characters");
+    return;
   }
+  if (username.length < 3) {
+    setError("Username must be at least 3 characters");
+    return;
+  }
+  if (!/^[a-zA-Z0-9]+$/.test(username)) {
+    setError("Username must only contain letters and numbers");
+    return;
+  }
+  setStep("face");
+}
 
   async function handleCapture(imageB64: string) {
     setCaptureStatus("scanning");
@@ -28,7 +41,8 @@ export default function Register() {
       setTimeout(() => navigate("/dashboard"), 1200);
     } catch (err: any) {
       setCaptureStatus("error");
-      setError(err.response?.data?.detail || "Registration failed");
+      const detail = err.response?.data?.detail;
+      setError(typeof detail === "string" ? detail : Array.isArray(detail) ? detail[0]?.msg || "Validation error" : "Registration failed");
     }
   }
 

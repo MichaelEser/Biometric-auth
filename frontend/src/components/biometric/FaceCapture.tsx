@@ -86,11 +86,7 @@ export function FaceCapture({ onCapture, status }: FaceCaptureProps) {
               ref={webcamRef}
               screenshotFormat="image/jpeg"
               screenshotQuality={0.92}
-              width={280}
-              height={340}
               videoConstraints={{
-                width: 640,
-                height: 480,
                 facingMode: "user",
               }}
               onUserMedia={onUserMedia}

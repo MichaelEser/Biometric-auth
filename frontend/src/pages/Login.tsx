@@ -27,7 +27,8 @@ export default function Login() {
       setTimeout(() => navigate("/dashboard"), 1200);
     } catch (err: any) {
       setCaptureStatus("error");
-      setError(err.response?.data?.detail || "Login failed");
+      const detail = err.response?.data?.detail;
+      setError(typeof detail === "string" ? detail : Array.isArray(detail) ? detail[0]?.msg || "Validation error" : "Login failed");
     }
   }
 
