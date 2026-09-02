@@ -23,29 +23,27 @@ PostgreSQL + pgvector
 
 1. User fills form (email, username, password)
 2. User captures face via webcam
-3. Frontend sends credentials to `POST /auth/register`
-4. Backend hashes password with bcrypt, creates user in PostgreSQL
-5. Frontend sends base64 face image to `POST /biometric/enroll`
-6. Backend runs FacePipeline:
+3. Frontend sends credentials and the base64 face image to `POST /auth/register`
+4. Backend runs FacePipeline:
    - Decodes base64 image
    - RetinaFace detects face and landmarks
-   - Silent-Face checks liveness
+   - The liveness hook runs (currently a development placeholder)
    - ArcFace extracts 512-dim embedding
-7. Embedding stored in pgvector
-8. User redirected to dashboard
+5. Backend atomically stores the user and embedding in PostgreSQL
+6. JWT tokens are issued only after the transaction succeeds
+7. User redirected to dashboard
 
 ## Request Flow — Login
 
 1. User enters email + password
 2. User captures face via webcam
-3. Frontend sends credentials to `POST /auth/login`
-4. Backend verifies password with bcrypt
-5. Frontend sends face image to `POST /biometric/verify`
-6. Backend runs FacePipeline on live image
-7. pgvector cosine similarity query against stored embedding
-8. If similarity ≥ 0.45 → authenticated
-9. JWT access token (15min) + refresh token (7d) issued
-10. User redirected to dashboard
+3. Frontend sends credentials and the base64 face image to `POST /auth/login`
+4. Backend verifies the password with bcrypt
+5. Backend runs FacePipeline on the live image
+6. The live embedding is compared with that user's stored embedding
+7. If similarity meets `SIMILARITY_THRESHOLD`, JWT access and refresh tokens are issued
+8. A mismatch returns `401 Unauthorized` without issuing any tokens
+9. User redirected to dashboard
 
 ## Components
 
@@ -67,3 +65,9 @@ PostgreSQL + pgvector
 - Rate limiting on auth endpoints (5 req/min)
 - Input validation on all endpoints via Pydantic
 - Biometric templates stored as normalized vectors
+
+### Production limitation
+
+`app/ml/anti_spoof/silent_face.py` currently returns a perfect liveness score for
+every detected face. A tested anti-spoofing model must replace this placeholder
+before production use; otherwise printed photos and screen replays are not blocked.

@@ -6,7 +6,7 @@ A full-stack web application for facial registration and verification with a sec
 | Layer | Technology |
 |---|---|
 | Backend | FastAPI + PostgreSQL (pgvector) + Redis |
-| AI / CV | InsightFace (ArcFace + RetinaFace) + Silent-Face |
+| AI / CV | InsightFace (ArcFace + RetinaFace); Silent-Face integration pending |
 | Frontend | React + TypeScript + TailwindCSS + react-webcam |
 | Infra | Docker + GitHub Actions |
 
@@ -47,7 +47,12 @@ docker-compose exec backend alembic upgrade head
 1. Register with email, username, password, and a face scan
 2. Login with credentials and a live face scan
 3. The system compares your live face embedding against the stored one using cosine similarity
-4. If similarity score ≥ 0.45 you are authenticated
+4. If the similarity score meets `SIMILARITY_THRESHOLD`, the backend issues JWT tokens
+
+> [!WARNING]
+> The current `silent_face.py` implementation is a development placeholder that
+> always accepts liveness. Do not treat this project as production-ready until a
+> tested anti-spoofing model is integrated and calibrated for the deployment cameras.
 
 ## Project Structurebiometric-auth/
 ├── backend/ # FastAPI backend

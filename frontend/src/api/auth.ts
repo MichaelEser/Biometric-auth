@@ -3,12 +3,12 @@ import type { AxiosRequestConfig } from "axios";
 import api from "../lib/axios";
 import type { TokenResponse } from "../types";
 
-export function register(email: string, username: string, password: string) {
-  return api.post<TokenResponse>("/auth/register", { email, username, password });
+export function register(email: string, username: string, password: string, imageB64: string) {
+  return api.post<TokenResponse>("/auth/register", { email, username, password, image_b64: imageB64 });
 }
 
-export function login(email: string, password: string) {
-  return api.post<TokenResponse>("/auth/login", { email, password });
+export function login(email: string, password: string, imageB64: string) {
+  return api.post<TokenResponse>("/auth/login", { email, password, image_b64: imageB64 });
 }
 
 export function logout() {

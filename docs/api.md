@@ -7,14 +7,16 @@ Full interactive docs available at:
 ## Auth
 
 ### POST /auth/register
-Register a new user. Returns JWT tokens.
+Register a new user and enroll their face atomically. JWT tokens are returned
+only after face processing and enrollment succeed.
 
 **Request:**
 ```json
 {
   "email": "user@example.com",
   "username": "myusername",
-  "password": "mypassword123"
+  "password": "mypassword123",
+  "image_b64": "<base64 JPEG without the data-URL prefix>"
 }
 ```
 
@@ -30,15 +32,19 @@ Register a new user. Returns JWT tokens.
 ---
 
 ### POST /auth/login
-Login with credentials. Returns JWT tokens.
+Login with password and face verification. JWT tokens are returned only after
+both factors succeed.
 
 **Request:**
 ```json
 {
   "email": "user@example.com",
-  "password": "mypassword123"
+  "password": "mypassword123",
+  "image_b64": "<base64 JPEG without the data-URL prefix>"
 }
 ```
+
+A password or face mismatch returns `401 Unauthorized` and no tokens.
 
 ---
 
