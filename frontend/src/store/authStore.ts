@@ -2,14 +2,7 @@
 // State: user, accessToken, status ("loading"|"authenticated"|"guest")
 // Actions: setAuth(), clearAuth()
 import { create } from "zustand";
-
-interface User {
-  id: string;
-  email: string;
-  username: string;
-  is_active: boolean;
-  created_at: string;
-}
+import type { User } from "../types";
 
 interface AuthState {
   user: User | null;

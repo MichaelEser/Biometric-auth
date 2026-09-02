@@ -216,23 +216,6 @@ export function FaceCapture({ onCapture, status }: FaceCaptureProps) {
       >
         {status === "scanning" ? "Scanning..." : status === "success" ? "Verified ✓" : "Scan Face"}
       </button>
-
-      <style>{`
-        @keyframes rotateDash {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes bounceDot {
-          0%, 100% { transform: translateY(0); opacity: 0.4; }
-          50% { transform: translateY(-5px); opacity: 1; }
-        }
-        @keyframes scanLine {
-          0% { top: 5%; opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { top: 95%; opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 }

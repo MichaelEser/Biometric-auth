@@ -1,25 +1,18 @@
+# Thin compatibility wrapper — see app.ml.model. Prefer calling
+# app.ml.model.analyze_primary_face() directly and reading `.embedding`
+# off the returned Face; calling extract_embedding() on its own re-runs
+# face detection.
 import numpy as np
-from insightface.app import FaceAnalysis
+from app.ml.model import get_face_app
 
-_embedder = None
 
 def get_embedder():
-    global _embedder
-    if _embedder is None:
-        _embedder = FaceAnalysis(
-            name="buffalo_l",
-            allowed_modules=["detection", "recognition"],
-            providers=["CPUExecutionProvider"]
-        )
-        _embedder.prepare(ctx_id=0, det_size=(640, 640))
-    return _embedder
+    return get_face_app()
+
 
 def extract_embedding(image: np.ndarray) -> np.ndarray:
-    embedder = get_embedder()
-    faces = embedder.get(image)
+    faces = get_face_app().get(image)
     if len(faces) == 0:
         raise ValueError("No face detected for embedding extraction")
-    face = faces[0]
-    embedding = face.embedding
-    embedding = embedding / np.linalg.norm(embedding)
-    return embedding
+    embedding = faces[0].embedding
+    return embedding / np.linalg.norm(embedding)

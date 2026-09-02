@@ -1,6 +1,24 @@
 // All auth HTTP calls via the shared Axios instance in lib/axios.ts
-//
-// register(data)        POST /auth/register
-// login(data)           POST /auth/login
-// logout()              POST /auth/logout
-// refreshTokens()       POST /auth/token/refresh
+import type { AxiosRequestConfig } from "axios";
+import api from "../lib/axios";
+import type { TokenResponse } from "../types";
+
+export function register(email: string, username: string, password: string) {
+  return api.post<TokenResponse>("/auth/register", { email, username, password });
+}
+
+export function login(email: string, password: string) {
+  return api.post<TokenResponse>("/auth/login", { email, password });
+}
+
+export function logout() {
+  return api.post("/auth/logout");
+}
+
+export function refreshTokens(refreshToken: string) {
+  return api.post<TokenResponse>("/auth/token/refresh", { refresh_token: refreshToken });
+}
+
+export function getCurrentUser(config?: AxiosRequestConfig) {
+  return api.get("/users/me", config);
+}

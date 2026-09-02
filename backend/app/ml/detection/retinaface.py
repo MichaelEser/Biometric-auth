@@ -1,28 +1,16 @@
-import numpy as np
-from insightface.app import FaceAnalysis
+# Thin compatibility wrapper — the model itself now lives in app.ml.model
+# so detection and recognition share a single loaded FaceAnalysis instance
+# instead of each loading and running their own copy of buffalo_l.
+from app.ml.model import get_face_app, analyze_primary_face
 
-_detector = None
 
 def get_detector():
-    global _detector
-    if _detector is None:
-        _detector = FaceAnalysis(
-            name="buffalo_l",
-            allowed_modules=["detection"],
-            providers=["CPUExecutionProvider"]
-        )
-        _detector.prepare(ctx_id=0, det_size=(640, 640))
-    return _detector
+    return get_face_app()
 
-def detect_faces(image: np.ndarray) -> list:
-    detector = get_detector()
-    faces = detector.get(image)
-    if len(faces) == 0:
-        raise ValueError("No face detected in image")
-    if len(faces) > 1:
-        raise ValueError("Multiple faces detected, please ensure only one face is visible")
-    return faces
 
-def get_primary_face(image: np.ndarray):
-    faces = detect_faces(image)
-    return faces[0]
+def detect_faces(image) -> list:
+    return [analyze_primary_face(image)]
+
+
+def get_primary_face(image):
+    return analyze_primary_face(image)

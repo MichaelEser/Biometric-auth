@@ -1,3 +1,4 @@
+import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.domain.biometric.repository import (
     save_embedding,
@@ -29,11 +30,20 @@ async def enroll_face(db: AsyncSession, user_id: UUID, image_b64: str) -> dict:
         MultipleFacesError: If more than one face is detected
         LivenessError: If the liveness check fails
     """
+    # Extract the new embedding BEFORE touching the old one. Model
+    # inference is also CPU-bound, so it's run in a worker thread instead
+    # of blocking the event loop (and every other in-flight request)
+    # while it runs.
+    embedding = await asyncio.to_thread(run_enroll, image_b64)
+
+    # Only replace the existing enrollment once the new scan has actually
+    # succeeded — previously the old embedding was deleted first, so a
+    # failed re-enrollment attempt (bad lighting, liveness check, etc.)
+    # left the user with no working face enrollment at all.
     existing = await get_embedding_by_user_id(db, user_id)
     if existing:
         await delete_embedding(db, user_id)
 
-    embedding = run_enroll(image_b64)
     await save_embedding(db, user_id, embedding)
     return {"message": "Face enrolled successfully"}
 
@@ -61,7 +71,7 @@ async def verify_face(db: AsyncSession, user_id: UUID, image_b64: str) -> dict:
         raise ValueError("No face enrolled for this user")
 
     stored_embedding = np.array(template.embedding)
-    authenticated, similarity = run_verify(image_b64, stored_embedding)
+    authenticated, similarity = await asyncio.to_thread(run_verify, image_b64, stored_embedding)
 
     return {
         "authenticated": authenticated,

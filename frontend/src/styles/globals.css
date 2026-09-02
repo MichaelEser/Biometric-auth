@@ -2,7 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Inter is now loaded from index.html via <link rel="stylesheet"> with a
+   preconnect hint — a same-file @import here has to come before the
+   @tailwind directives to be valid CSS, and even then it blocks
+   rendering until the font request resolves. Loading it from the HTML
+   head lets the browser start the font fetch immediately, in parallel
+   with everything else, instead of waiting on the bundled CSS. */
 
 * {
   font-family: 'Inter', sans-serif;
@@ -90,4 +95,22 @@ body {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
+}
+
+/* FaceCapture oval — moved out of the component so this CSS isn't
+   re-injected into a new <style> tag on every scanning/success/error
+   status change. */
+@keyframes rotateDash {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes bounceDot {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-5px); opacity: 1; }
+}
+@keyframes scanLine {
+  0% { top: 5%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 95%; opacity: 0; }
 }

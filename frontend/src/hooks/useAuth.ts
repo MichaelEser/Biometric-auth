@@ -1,9 +1,10 @@
 // Custom hook — wraps Zustand authStore
-// Returns: user, isAuthenticated, isLoading, login(), logout()
+// Returns: user, isAuthenticated, isLoading, login(), register(), logout()
 // Handles silent token refresh automatically before expiry
 import { useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
-import api from "../lib/axios";
+import * as authApi from "../api/auth";
+import * as biometricApi from "../api/biometric";
 import { isExpired, msUntilRefresh } from "../lib/token";
 
 export function useAuth() {
@@ -16,63 +17,60 @@ export function useAuth() {
       return;
     }
 
-    api.get("/users/me").then((res) => {
-      const refreshToken = localStorage.getItem("refresh_token") || "";
-      setAuth(res.data, token, refreshToken);
+    authApi
+      .getCurrentUser({ headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => {
+        const refreshToken = localStorage.getItem("refresh_token") || "";
+        setAuth(res.data, token, refreshToken);
 
-      const ms = msUntilRefresh(token);
-      if (ms > 0) {
-        setTimeout(async () => {
-          try {
-            const refreshRes = await api.post("/auth/token/refresh", {
-              refresh_token: refreshToken,
-            });
-            setAuth(res.data, refreshRes.data.access_token, refreshRes.data.refresh_token);
-          } catch {
-            clearAuth();
-          }
-        }, ms);
-      }
-    }).catch(() => {
-      clearAuth();
-    });
+        const ms = msUntilRefresh(token);
+        if (ms > 0) {
+          setTimeout(async () => {
+            try {
+              const refreshRes = await authApi.refreshTokens(refreshToken);
+              setAuth(res.data, refreshRes.data.access_token, refreshRes.data.refresh_token);
+            } catch {
+              clearAuth();
+            }
+          }, ms);
+        }
+      })
+      .catch(() => {
+        clearAuth();
+      });
   }, []);
 
   async function login(email: string, password: string, imageb64: string) {
-    const tokenRes = await api.post("/auth/login", { email, password });
+    const tokenRes = await authApi.login(email, password);
     const { access_token, refresh_token } = tokenRes.data;
-    localStorage.setItem("access_token", access_token);
+    const authHeader = { headers: { Authorization: `Bearer ${access_token}` } };
 
-    await api.post("/biometric/verify", { image_b64: imageb64 });
+    // Hold the token in memory until biometric verification also
+    // succeeds. Persisting it to localStorage right after the password
+    // check (as before) left a fully usable access token behind even
+    // when the face scan failed or was never completed.
+    await biometricApi.verifyFace(imageb64, authHeader);
+    const userRes = await authApi.getCurrentUser(authHeader);
 
-    const userRes = await api.get("/users/me");
     setAuth(userRes.data, access_token, refresh_token);
   }
 
   async function register(email: string, username: string, password: string, imageb64: string) {
-  try {
-    const tokenRes = await api.post("/auth/register", { email, username, password });
+    const tokenRes = await authApi.register(email, username, password);
     const { access_token, refresh_token } = tokenRes.data;
-    localStorage.setItem("access_token", access_token);
+    const authHeader = { headers: { Authorization: `Bearer ${access_token}` } };
 
-    await api.post("/biometric/enroll", { image_b64: imageb64 });
+    // Same reasoning as login(): don't persist tokens until enrollment
+    // has actually succeeded.
+    await biometricApi.enrollFace(imageb64, authHeader);
+    const userRes = await authApi.getCurrentUser(authHeader);
 
-    const userRes = await api.get("/users/me");
     setAuth(userRes.data, access_token, refresh_token);
-  } catch (err: any) {
-    const detail = err.response?.data?.detail;
-    const message = typeof detail === "string"
-      ? detail
-      : Array.isArray(detail)
-      ? detail.map((d: any) => d.msg).join(", ")
-      : "Registration failed";
-    throw new Error(message);
   }
-}
 
   async function logout() {
     try {
-      await api.post("/auth/logout");
+      await authApi.logout();
     } finally {
       clearAuth();
     }
