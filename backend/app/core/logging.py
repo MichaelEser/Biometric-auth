@@ -2,6 +2,7 @@
 # Configure log level from environment variable
 import logging
 
+
 def setup_logging():
     logging.basicConfig(
         level=logging.INFO,

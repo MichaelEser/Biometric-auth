@@ -2,7 +2,7 @@ import asyncio
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import check_password, get_password_hash, issue_tokens
+from app.core.security import check_password, get_password_hash, issue_tokens, verify_token
 from app.domain.auth.repository import (
     get_user_for_login,
     register_new_user,
@@ -95,8 +95,6 @@ async def refresh_tokens(token: str) -> dict:
     Raises:
         ValueError: If token is invalid or not a refresh token
     """
-    from app.core.security import verify_token
-
     payload = verify_token(token)
     if payload.get("type") != "refresh":
         raise ValueError("Invalid token type")

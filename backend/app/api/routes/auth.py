@@ -18,12 +18,8 @@ bearer_scheme = HTTPBearer()
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post(
-    "/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED
-)
-async def register(
-    request: Request, payload: RegisterRequest, db: AsyncSession = Depends(get_db)
-):
+@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+async def register(request: Request, payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
     await rate_limit(request, limit=5, window=60)
     try:
         user = await register_user(
@@ -34,19 +30,17 @@ async def register(
             payload.image_b64,
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     return issue_tokens(str(user.id))
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(
-    request: Request, payload: LoginRequest, db: AsyncSession = Depends(get_db)
-):
+async def login(request: Request, payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     await rate_limit(request, limit=5, window=60)
     try:
         return await login_user(db, payload.email, payload.password, payload.image_b64)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
 
 
 @router.post("/token/refresh", response_model=TokenResponse)
@@ -54,7 +48,7 @@ async def refresh(payload: RefreshRequest):
     try:
         return await refresh_tokens(payload.refresh_token)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
 
 
 @router.post("/logout")
@@ -67,7 +61,7 @@ async def logout(
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
-        )
+        ) from None
 
     from app.core.config import settings
     from app.core.redis import blacklist_token

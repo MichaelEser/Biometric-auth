@@ -1,9 +1,10 @@
 import numpy as np
-from app.ml.preprocessing.image_utils import decode_base64_image, to_rgb
-from app.ml.model import analyze_primary_face
-from app.ml.anti_spoof.silent_face import is_live
+
 from app.core.config import settings
-from app.core.exceptions import NoFaceDetectedError, MultipleFacesError, LivenessError
+from app.core.exceptions import LivenessError, MultipleFacesError, NoFaceDetectedError
+from app.ml.anti_spoof.silent_face import is_live
+from app.ml.model import analyze_primary_face
+from app.ml.preprocessing.image_utils import decode_base64_image, to_rgb
 
 
 def _detect_and_embed(image_b64: str) -> np.ndarray:
@@ -25,9 +26,9 @@ def _detect_and_embed(image_b64: str) -> np.ndarray:
         face = analyze_primary_face(image_rgb)
     except ValueError as e:
         if "No face" in str(e):
-            raise NoFaceDetectedError()
+            raise NoFaceDetectedError() from e
         if "Multiple" in str(e):
-            raise MultipleFacesError()
+            raise MultipleFacesError() from e
         raise
 
     bbox = face.bbox.tolist()

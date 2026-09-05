@@ -1,75 +1,141 @@
-# AI-Powered Biometric Authentication System
+# Biometric Authentication
 
-A full-stack web application for facial registration and verification with a secure JWT-based backend.
+[![CI](https://github.com/MichaelEser/Biometric-auth/actions/workflows/ci.yml/badge.svg)](https://github.com/MichaelEser/Biometric-auth/actions/workflows/ci.yml)
 
-## Stack
+A full-stack facial-authentication demo built with FastAPI, React, InsightFace,
+PostgreSQL/pgvector, and Redis. Registration stores a normalized face embedding;
+login requires both the account password and a matching face before the backend
+issues JWTs.
+
+> [!IMPORTANT]
+> This is a portfolio/demo project, not a production identity system. The liveness
+> hook is currently a documented placeholder and does not block photos or screen
+> replays. See [Limitations](#limitations).
+
+## Highlights
+
+- Password and face verification enforced together by the backend
+- ArcFace embeddings and cosine-similarity matching
+- Atomic user registration and biometric enrollment
+- Short-lived access tokens, refresh tokens, logout revocation, and rate limiting
+- PostgreSQL with pgvector for biometric templates
+- React webcam flow with guarded authenticated routes
+- Docker Compose development environment and GitHub Actions CI
+
+## Technology
+
 | Layer | Technology |
 |---|---|
-| Backend | FastAPI + PostgreSQL (pgvector) + Redis |
-| AI / CV | InsightFace (ArcFace + RetinaFace); Silent-Face integration pending |
-| Frontend | React + TypeScript + TailwindCSS + react-webcam |
-| Infra | Docker + GitHub Actions |
+| Frontend | React, TypeScript, Vite, Tailwind CSS, Zustand |
+| Backend | FastAPI, SQLAlchemy, Alembic |
+| Face pipeline | InsightFace `buffalo_l` (detection + ArcFace recognition) |
+| Data | PostgreSQL, pgvector, Redis |
+| Infrastructure | Docker Compose, Nginx, GitHub Actions |
 
-## Features
-- Face registration via webcam
-- Facial verification on login
-- JWT access + refresh token system
-- Redis JWT blacklisting on logout
-- Rate limiting on auth endpoints
-- pgvector cosine similarity search
+## Authentication flow
 
-## Quick Start
+1. The user submits a password and webcam capture together.
+2. The backend validates the password and extracts a normalized face embedding.
+3. Login compares that embedding with the template stored for the requested user.
+4. JWT access and refresh tokens are issued only when both checks succeed.
+
+More detail is available in [docs/architecture.md](docs/architecture.md).
+
+## Run locally
+
+### Requirements
+
+- Docker Desktop with Docker Compose
+- A webcam-enabled browser
+
+### Setup
 
 ```bash
-# 1. Copy and fill environment variables
+git clone https://github.com/MichaelEser/Biometric-auth.git
+cd Biometric-auth
 cp .env.example .env
-
-# 2. Download AI model weights
-bash backend/scripts/download_models.sh
-
-# 3. Start all services
-docker-compose up --build
-
-# 4. Apply database migrations
-docker-compose exec backend alembic upgrade head
+docker compose up --build -d
+docker compose exec backend alembic upgrade head
 ```
 
-- Backend API docs: http://localhost:8000/docs
-- Frontend: http://localhost:3000
+Then open:
 
-## Live Demo
+- Frontend: <http://localhost:3000>
+- API documentation: <http://localhost:8000/docs>
 
-- **Frontend**: https://biometric-auth-frontend.onrender.com
-- **Backend API docs**: https://biometric-auth-backend-enwe.onrender.com/docs
+The first face operation can take longer while InsightFace initializes its model.
+Stop the project with `docker compose down`.
 
-## How It Works
+## Configuration
 
-1. Register with email, username, password, and a face scan
-2. Login with credentials and a live face scan
-3. The system compares your live face embedding against the stored one using cosine similarity
-4. If the similarity score meets `SIMILARITY_THRESHOLD`, the backend issues JWT tokens
+The root `.env.example` contains every required setting.
 
-> [!WARNING]
-> The current `silent_face.py` implementation is a development placeholder that
-> always accepts liveness. Do not treat this project as production-ready until a
-> tested anti-spoofing model is integrated and calibrated for the deployment cameras.
+| Variable | Purpose | Example/default |
+|---|---|---|
+| `POSTGRES_USER` | Local database user | `user` |
+| `POSTGRES_PASSWORD` | Local database password | Development value only |
+| `POSTGRES_DB` | Local database name | `biometric_db` |
+| `DATABASE_URL` | Async SQLAlchemy connection string | PostgreSQL container URL |
+| `SECRET_KEY` | JWT signing key | Replace with a random secret |
+| `REDIS_URL` | Revocation and rate-limit store | Redis container URL |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Access-token lifetime | `15` |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | Refresh-token lifetime | `7` |
+| `SIMILARITY_THRESHOLD` | Minimum cosine similarity for a match | `0.50` |
 
-## Project Structurebiometric-auth/
-├── backend/ # FastAPI backend
-│ ├── app/
-│ │ ├── api/ # HTTP routes
-│ │ ├── core/ # Config, security, Redis
-│ │ ├── domain/ # Auth, users, biometric logic
-│ │ └── ml/ # AI pipeline
-│ └── migrations/ # Alembic migrations
-├── frontend/ # React frontend
-│ └── src/
-│ ├── components/
-│ ├── hooks/
-│ ├── pages/
-│ └── store/
-└── docker/ # Nginx config
+Face thresholds must be calibrated against representative genuine and impostor
+captures. Higher values are stricter; values close to `1.0` are usually too strict
+for separate webcam captures.
 
-## Deployment
-See `docker-compose.prod.yml` for production configuration.
-Set all environment variables from `.env.example` in your deployment platform.
+## Tests and checks
+
+Backend:
+
+```bash
+ruff check backend/app backend/tests
+ruff format --check backend/app backend/tests
+pytest backend/tests -q
+```
+
+Frontend:
+
+```bash
+npm --prefix frontend ci
+npm --prefix frontend run build
+```
+
+The same checks run in `.github/workflows/ci.yml`.
+
+## Project layout
+
+```text
+backend/
+  app/
+    api/          FastAPI routes and dependencies
+    core/         Configuration, security, Redis, exceptions
+    domain/       Auth, users, and biometric persistence/services
+    ml/           InsightFace pipeline and liveness hook
+  migrations/     Alembic database migration
+  tests/          Backend regression and unit tests
+frontend/
+  src/            React application, API client, state, and webcam UI
+docker/
+  nginx/          Frontend server and API reverse proxy
+docs/             API and architecture notes
+```
+
+## Documentation
+
+- [API reference](docs/api.md)
+- [Architecture](docs/architecture.md)
+- Interactive OpenAPI documentation at `/docs` while the backend is running
+
+## Limitations
+
+- `backend/app/ml/anti_spoof/silent_face.py` currently returns a successful
+  liveness score for every detected face. A tested anti-spoofing model is required
+  before real-world use.
+- Biometric templates are stored as embeddings, but production deployments would
+  also require encryption/key management, audit logging, retention policies, and
+  privacy/legal review.
+- The default threshold is a development starting point, not a universal security
+  guarantee.

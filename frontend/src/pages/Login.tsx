@@ -55,7 +55,7 @@ export default function Login() {
           Secure login with your face
         </h2>
         <p style={{ color: "#64748b", fontSize: 15, lineHeight: 1.6 }}>
-          No passwords needed. Just look at the camera and you're in.
+          Two-step protection using your password and face.
         </p>
       </div>
 

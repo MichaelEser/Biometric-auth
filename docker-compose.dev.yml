@@ -1,5 +1,4 @@
 # Development overrides — hot reload, exposed ports, debug logging
-version: "3.9"
 services:
   backend:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload

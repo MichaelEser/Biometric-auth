@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   backend:
     build: ./backend
@@ -11,7 +9,6 @@ services:
       - redis
     volumes:
       - ./backend:/app
-      - ./backend/onnx_models:/app/onnx_models
 
   frontend:
     build:

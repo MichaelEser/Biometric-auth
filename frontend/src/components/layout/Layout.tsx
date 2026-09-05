@@ -1,17 +1,18 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import type { User } from "../../types";
 
 interface LayoutProps {
   children: React.ReactNode;
+  user: User | null;
+  onLogout: () => Promise<void>;
 }
 
-export function Layout({ children }: LayoutProps) {
-  const { user, logout } = useAuth();
+export function Layout({ children, user, onLogout }: LayoutProps) {
   const navigate = useNavigate();
 
   async function handleLogout() {
-    await logout();
+    await onLogout();
     navigate("/login");
   }
 
