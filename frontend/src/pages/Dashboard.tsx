@@ -4,11 +4,11 @@ import { AuthGuard } from "../components/auth/AuthGuard";
 import { useAuth } from "../hooks/useAuth";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <AuthGuard>
-      <Layout>
+      <Layout user={user} onLogout={logout}>
         <div className="fade-in">
 
           {/* Welcome header */}

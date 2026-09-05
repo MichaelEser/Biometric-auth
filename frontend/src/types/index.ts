@@ -13,17 +13,3 @@ export interface TokenResponse {
   refresh_token: string;
   token_type: string;
 }
-
-export interface VerifyResponse {
-  authenticated: boolean;
-  similarity_score: number;
-}
-
-export interface ApiErrorDetail {
-  msg: string;
-  [key: string]: unknown;
-}
-
-export interface ApiError {
-  detail: string | ApiErrorDetail[];
-}

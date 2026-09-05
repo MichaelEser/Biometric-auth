@@ -1,17 +1,6 @@
-import base64
-import binascii
-
 from pydantic import BaseModel, EmailStr, field_validator
 
-
-def validate_image_b64(value: str) -> str:
-    if len(value) < 100:
-        raise ValueError("Image data too short")
-    try:
-        base64.b64decode(value, validate=True)
-    except (binascii.Error, ValueError):
-        raise ValueError("Invalid base64 image data")
-    return value
+from app.domain.biometric.schemas import validate_image_b64
 
 
 class RegisterRequest(BaseModel):

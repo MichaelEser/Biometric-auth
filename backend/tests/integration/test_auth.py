@@ -3,7 +3,6 @@ from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import pytest
-
 from app.domain.auth.service import login_user
 
 
@@ -23,9 +22,7 @@ async def test_login_rejects_face_mismatch_without_issuing_tokens():
         patch("app.domain.auth.service.check_password", return_value=True),
         patch(
             "app.domain.auth.service.verify_face",
-            new=AsyncMock(
-                return_value={"authenticated": False, "similarity_score": 0.31}
-            ),
+            new=AsyncMock(return_value={"authenticated": False, "similarity_score": 0.31}),
         ),
         patch("app.domain.auth.service.issue_tokens") as issue_tokens,
         pytest.raises(ValueError, match="Face verification failed"),
@@ -56,9 +53,7 @@ async def test_login_issues_tokens_only_after_face_match():
         patch("app.domain.auth.service.check_password", return_value=True),
         patch(
             "app.domain.auth.service.verify_face",
-            new=AsyncMock(
-                return_value={"authenticated": True, "similarity_score": 0.82}
-            ),
+            new=AsyncMock(return_value={"authenticated": True, "similarity_score": 0.82}),
         ),
         patch(
             "app.domain.auth.service.issue_tokens",

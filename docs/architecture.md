@@ -1,73 +1,58 @@
-# Architecture Overview
-
-## System Architecture
-Browser (React + TailwindCSS)
-|
-| HTTPS
-v
-Nginx (Frontend)
-|
-| /api/* proxy
-v
-FastAPI (Backend)
-| |
-| v
-| Redis
-| (JWT blacklist
-| + rate limiting)
-v
-PostgreSQL + pgvector
-(users + face embeddings)
-
-## Request Flow — Registration
-
-1. User fills form (email, username, password)
-2. User captures face via webcam
-3. Frontend sends credentials and the base64 face image to `POST /auth/register`
-4. Backend runs FacePipeline:
-   - Decodes base64 image
-   - RetinaFace detects face and landmarks
-   - The liveness hook runs (currently a development placeholder)
-   - ArcFace extracts 512-dim embedding
-5. Backend atomically stores the user and embedding in PostgreSQL
-6. JWT tokens are issued only after the transaction succeeds
-7. User redirected to dashboard
-
-## Request Flow — Login
-
-1. User enters email + password
-2. User captures face via webcam
-3. Frontend sends credentials and the base64 face image to `POST /auth/login`
-4. Backend verifies the password with bcrypt
-5. Backend runs FacePipeline on the live image
-6. The live embedding is compared with that user's stored embedding
-7. If similarity meets `SIMILARITY_THRESHOLD`, JWT access and refresh tokens are issued
-8. A mismatch returns `401 Unauthorized` without issuing any tokens
-9. User redirected to dashboard
+# Architecture
 
 ## Components
 
-| Component | Technology | Purpose |
-|---|---|---|
-| Frontend | React + TypeScript + TailwindCSS | UI and webcam capture |
-| Backend | FastAPI | REST API and business logic |
-| AI Engine | InsightFace (ArcFace + RetinaFace) | Face detection and embedding |
-| Database | PostgreSQL + pgvector | User data and face embeddings |
-| Cache | Redis | JWT blacklist and rate limiting |
-| Proxy | Nginx | Serve frontend and proxy API |
+```mermaid
+flowchart TD
+    Browser["React browser client"] --> Nginx["Nginx / Vite proxy"]
+    Nginx --> API["FastAPI backend"]
+    API --> Models["InsightFace models"]
+    API --> Database["PostgreSQL + pgvector"]
+    API --> Redis["Redis"]
+```
 
-## Security
+| Component | Responsibility |
+|---|---|
+| React frontend | Credentials, webcam capture, session state, guarded dashboard |
+| Nginx/Vite | Serves the frontend and proxies `/api` requests |
+| FastAPI | Validation, authentication decisions, token issuance, API responses |
+| InsightFace | Face detection and 512-dimensional ArcFace embeddings |
+| PostgreSQL/pgvector | Users and one biometric template per user |
+| Redis | Login rate limiting and revoked access-token identifiers |
 
-- Passwords hashed with bcrypt
-- JWT tokens with short expiry (15 min)
-- Refresh token rotation
-- JWT blacklisting on logout via Redis
-- Rate limiting on auth endpoints (5 req/min)
-- Input validation on all endpoints via Pydantic
-- Biometric templates stored as normalized vectors
+## Registration
 
-### Production limitation
+1. The browser captures the user's details and face.
+2. `POST /auth/register` validates both inputs.
+3. The face pipeline decodes the image, requires exactly one detected face, runs
+   the liveness hook, and normalizes the recognition embedding.
+4. The user and embedding are committed in one transaction.
+5. Only then does the backend issue access and refresh tokens.
 
-`app/ml/anti_spoof/silent_face.py` currently returns a perfect liveness score for
-every detected face. A tested anti-spoofing model must replace this placeholder
-before production use; otherwise printed photos and screen replays are not blocked.
+## Login
+
+1. The browser submits email, password, and a face capture together.
+2. The backend verifies the password.
+3. The face pipeline extracts a normalized embedding from the capture.
+4. The backend calculates cosine similarity against that user's stored template.
+5. A score at or above `SIMILARITY_THRESHOLD` produces JWTs; a lower score
+   returns `401 Unauthorized` without issuing tokens.
+
+## Security boundaries
+
+- Passwords are hashed with bcrypt.
+- JWT access tokens expire after 15 minutes by default.
+- Logout stores the access token's unique identifier in Redis, and authenticated
+  routes reject identifiers on that revocation list.
+- Authentication endpoints are rate-limited per client IP and route.
+- Registration does not leave an account behind if biometric persistence fails.
+- Input schemas reject malformed, unusually small, and oversized image payloads.
+- Templates store normalized embeddings rather than source face images.
+
+## Known limitation: liveness
+
+`app/ml/anti_spoof/silent_face.py` is an explicit development placeholder. It
+currently returns a perfect liveness score for every detected face, so printed
+photos and screen replays are not blocked. A production system must replace it
+with a tested anti-spoofing model and calibrate it for its cameras and operating
+conditions.

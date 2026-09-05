@@ -1,5 +1,20 @@
-from pydantic import BaseModel, field_validator
 import base64
+import binascii
+
+from pydantic import BaseModel, field_validator
+
+
+def validate_image_b64(value: str) -> str:
+    if len(value) < 100:
+        raise ValueError("Image data too short")
+    if len(value) > 10_000_000:
+        raise ValueError("Image data too large")
+    try:
+        base64.b64decode(value, validate=True)
+    except (binascii.Error, ValueError):
+        raise ValueError("Invalid base64 image data") from None
+    return value
+
 
 class EnrollRequest(BaseModel):
     image_b64: str
@@ -7,13 +22,8 @@ class EnrollRequest(BaseModel):
     @field_validator("image_b64")
     @classmethod
     def validate_image(cls, v: str) -> str:
-        if len(v) < 100:
-            raise ValueError("Image data too short")
-        try:
-            base64.b64decode(v, validate=True)
-        except Exception:
-            raise ValueError("Invalid base64 image data")
-        return v
+        return validate_image_b64(v)
+
 
 class VerifyRequest(BaseModel):
     image_b64: str
@@ -21,13 +31,8 @@ class VerifyRequest(BaseModel):
     @field_validator("image_b64")
     @classmethod
     def validate_image(cls, v: str) -> str:
-        if len(v) < 100:
-            raise ValueError("Image data too short")
-        try:
-            base64.b64decode(v, validate=True)
-        except Exception:
-            raise ValueError("Invalid base64 image data")
-        return v
+        return validate_image_b64(v)
+
 
 class VerifyResponse(BaseModel):
     authenticated: bool

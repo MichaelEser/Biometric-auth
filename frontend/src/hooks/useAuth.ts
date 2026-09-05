@@ -1,6 +1,4 @@
-// Custom hook — wraps Zustand authStore
-// Returns: user, isAuthenticated, isLoading, login(), register(), logout()
-// Handles silent token refresh automatically before expiry
+// Authentication actions plus session restoration and token refresh.
 import { useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
 import * as authApi from "../api/auth";
@@ -49,7 +47,12 @@ export function useAuth() {
     setAuth(userRes.data, access_token, refresh_token);
   }
 
-  async function register(email: string, username: string, password: string, imageb64: string) {
+  async function register(
+    email: string,
+    username: string,
+    password: string,
+    imageb64: string
+  ) {
     // Account creation and face enrollment are one backend transaction.
     const tokenRes = await authApi.register(email, username, password, imageb64);
     const { access_token, refresh_token } = tokenRes.data;
